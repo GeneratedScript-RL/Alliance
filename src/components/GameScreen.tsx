@@ -10,6 +10,7 @@ import {
   healNation,
   moveNation,
   setNationFlag,
+  shapeLabel,
   transferAp,
   uid,
   upgradeRange,
@@ -275,7 +276,8 @@ export function GameScreen({ initialHistory, initialUndone, onExit }: GameScreen
     hud =
       mode.type === 'attack' ? (
         <>
-          Attacking with <b>{actor.name}</b> (range {actor.range}) — click a nation in range · Esc to cancel
+          Attacking with <b>{actor.name}</b> (range {actor.range} · {shapeLabel(live.config.rangeShape)} shape) — click a
+          nation in range · Esc to cancel
         </>
       ) : mode.type === 'free-move' ? (
         <>
@@ -283,14 +285,15 @@ export function GameScreen({ initialHistory, initialUndone, onExit }: GameScreen
         </>
       ) : (
         <>
-          Transferring from <b>{actor.name}</b> (range {actor.range}) — click a nation in range · Esc to cancel
+          Transferring from <b>{actor.name}</b> (range {actor.range} · {shapeLabel(live.config.rangeShape)} shape) — click
+          a nation in range · Esc to cancel
         </>
       );
   } else if (hoveredNation) {
     hud = (
       <>
-        <b>{hoveredNation.name}</b> · HP {hoveredNation.hp}/{live.config.startingHp} · range {hoveredNation.range} ·{' '}
-        {hoveredNation.ap} AP
+        <b>{hoveredNation.name}</b> · HP {hoveredNation.hp}/{live.config.startingHp} · range {hoveredNation.range} (
+        {shapeLabel(live.config.rangeShape)}) · {hoveredNation.ap} AP
       </>
     );
   } else {
@@ -420,6 +423,7 @@ export function GameScreen({ initialHistory, initialUndone, onExit }: GameScreen
           costs={costs}
           apGainPerTurn={live.config.apGainPerTurn}
           maxRange={live.config.maxRange}
+          rangeShape={live.config.rangeShape}
           startingHp={live.config.startingHp}
         />
       )}

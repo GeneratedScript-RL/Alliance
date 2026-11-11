@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
-import type { GameConfig } from '../types';
-import { DEFAULT_CONFIG, LIMITS, normalizeConfig } from '../game/engine';
+import type { GameConfig, RangeShape } from '../types';
+import { DEFAULT_CONFIG, LIMITS, RANGE_SHAPES, cellInRange, normalizeConfig } from '../game/engine';
 import { IconChevronRight } from './icons';
 
 type FormKey =
@@ -22,6 +22,27 @@ type FormKey =
 
 type Form = Record<FormKey, string>;
 
+const PREVIEW_SIZE = 7;
+const PREVIEW_RANGE = 2;
+
+function RangeShapePreview({ shape }: { shape: RangeShape }) {
+  const center = Math.floor(PREVIEW_SIZE / 2);
+  return (
+    <div className="range-shape-preview" style={{ gridTemplateColumns: `repeat(${PREVIEW_SIZE}, 1fr)` }}>
+      {Array.from({ length: PREVIEW_SIZE * PREVIEW_SIZE }, (_, index) => {
+        const col = index % PREVIEW_SIZE;
+        const row = Math.floor(index / PREVIEW_SIZE);
+        const isOrigin = col === center && row === center;
+        const lit = isOrigin || cellInRange(shape, { col: center, row: center }, { col, row }, PREVIEW_RANGE);
+        const classes = ['shape-cell'];
+        if (isOrigin) classes.push('shape-origin');
+        else if (lit) classes.push('shape-on');
+        return <span key={`${col},${row}`} className={classes.join(' ')} />;
+      })}
+    </div>
+  );
+}
+
 interface FieldDef {
   key: FormKey;
   label: string;
@@ -30,8 +51,9 @@ interface FieldDef {
   max: number;
 }
 
-const GROUPS: { title: string; note?: string; fields: FieldDef[] }[] = [
+const GROUPS: { id: string; title: string; note?: string; fields: FieldDef[] }[] = [
   {
+    id: 'board',
     title: 'Board',
     note: 'Squares are placed randomly at the start.',
     fields: [
@@ -41,9 +63,10 @@ const GROUPS: { title: string; note?: string; fields: FieldDef[] }[] = [
     ],
   },
   {
+    id: 'nations',
     title: 'Nations',
     fields: [
-      { key: 'rangeOnStart', label: 'Range on start', hint: 'king-move distance', min: LIMITS.rangeOnStart[0], max: LIMITS.rangeOnStart[1] },
+      { key: 'rangeOnStart', label: 'Range on start', hint: 'reach in squares', min: LIMITS.rangeOnStart[0], max: LIMITS.rangeOnStart[1] },
       { key: 'maxRange', label: 'Max range', hint: 'upgrade ceiling', min: LIMITS.maxRange[0], max: LIMITS.maxRange[1] },
       { key: 'startingHp', label: 'Starting HP', hint: 'health per nation', min: LIMITS.startingHp[0], max: LIMITS.startingHp[1] },
       { key: 'startingAp', label: 'Starting AP', hint: 'action points at spawn', min: LIMITS.startingAp[0], max: LIMITS.startingAp[1] },
@@ -51,6 +74,7 @@ const GROUPS: { title: string; note?: string; fields: FieldDef[] }[] = [
     ],
   },
   {
+    id: 'costs',
     title: 'AP cost per action',
     note: '0 makes an action free.',
     fields: [
@@ -62,6 +86,7 @@ const GROUPS: { title: string; note?: string; fields: FieldDef[] }[] = [
     ],
   },
   {
+    id: 'advanced',
     title: 'Advanced',
     note: 'Combat values — keep the defaults if unsure.',
     fields: [
@@ -93,7 +118,7 @@ function toForm(config: GameConfig): Form {
   };
 }
 
-function parseForm(form: Form): { config: GameConfig | null; errors: string[] } {
+function parseForm(form: Form, rangeShape: RangeShape): { config: GameConfig | null; errors: string[] } {
   const errors: string[] = [];
   const values = {} as Record<FormKey, number>;
 
@@ -131,6 +156,7 @@ function parseForm(form: Form): { config: GameConfig | null; errors: string[] } 
     playerCount: values.playerCount,
     rangeOnStart: values.rangeOnStart,
     maxRange: values.maxRange,
+    rangeShape,
     startingHp: values.startingHp,
     startingAp: values.startingAp,
     apGainPerTurn: values.apGainPerTurn,
@@ -155,9 +181,10 @@ interface NewGameSettingsProps {
 
 export function NewGameSettings({ onStart, onBack }: NewGameSettingsProps) {
   const [form, setForm] = useState<Form>(() => toForm(DEFAULT_CONFIG));
+  const [rangeShape, setRangeShape] = useState<RangeShape>(DEFAULT_CONFIG.rangeShape);
   const [showErrors, setShowErrors] = useState(false);
 
-  const parsed = useMemo(() => parseForm(form), [form]);
+  const parsed = useMemo(() => parseForm(form, rangeShape), [form, rangeShape]);
 
   const update = (key: FormKey, value: string) => {
     setForm((current) => ({ ...current, [key]: value }));
@@ -191,6 +218,25 @@ export function NewGameSettings({ onStart, onBack }: NewGameSettingsProps) {
                 <h2>{group.title}</h2>
                 {group.note && <p>{group.note}</p>}
               </div>
+              {group.id === 'nations' && (
+                <div className="range-shape">
+                  <div className="range-shape-options">
+                    {RANGE_SHAPES.map((option) => (
+                      <button
+                        key={option.value}
+                        type="button"
+                        className={`range-shape-option ${option.value === rangeShape ? 'is-active' : ''}`}
+                        aria-pressed={option.value === rangeShape}
+                        onClick={() => setRangeShape(option.value)}
+                      >
+                        <span className="range-shape-name">{option.label}</span>
+                        <span className="range-shape-hint">{option.hint}</span>
+                      </button>
+                    ))}
+                  </div>
+                  <RangeShapePreview shape={rangeShape} />
+                </div>
+              )}
               <div className="field-grid">
                 {group.fields.map((field) => (
                   <label key={field.key} className="field">

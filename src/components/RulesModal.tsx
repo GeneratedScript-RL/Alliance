@@ -1,3 +1,5 @@
+import type { RangeShape } from '../types';
+import { RANGE_SHAPES } from '../game/engine';
 import { nationName } from '../game/flags';
 import { Flag } from './Flag';
 import { Modal } from './Modal';
@@ -17,10 +19,13 @@ interface RulesModalProps {
   costs: { move: number; attack: number; heal: number; transfer: number; increaseRange: number };
   apGainPerTurn: number;
   maxRange: number;
+  rangeShape: RangeShape;
   startingHp: number;
 }
 
-export function RulesModal({ onClose, costs, apGainPerTurn, maxRange, startingHp }: RulesModalProps) {
+export function RulesModal({ onClose, costs, apGainPerTurn, maxRange, rangeShape, startingHp }: RulesModalProps) {
+  const shape = RANGE_SHAPES.find((entry) => entry.value === rangeShape) ?? RANGE_SHAPES[0];
+
   return (
     <Modal title="Coordinator reference" subtitle="Local board — no turn order is enforced." onClose={onClose} width={620}>
       <div className="rules">
@@ -50,7 +55,11 @@ export function RulesModal({ onClose, costs, apGainPerTurn, maxRange, startingHp
             <strong>Upgrade range</strong> ({costs.increaseRange} AP) raises range by 1, capped at {maxRange}.
           </li>
           <li>
-            <strong>Next turn</strong> hands every nation +{apGainPerTurn} AP. Distances are measured in king moves.
+            <strong>Next turn</strong> hands every nation +{apGainPerTurn} AP.
+          </li>
+          <li>
+            <strong>Range shape</strong> is set to <b>{shape.label}</b> — {shape.hint.replace(/\.$/, '').toLowerCase()}.
+            Attack and transfer only reach nations inside it.
           </li>
           <li>
             <strong>Ctrl+Z</strong> undoes, <strong>Ctrl+Y</strong> redoes, and the history panel rewinds to any moment.

@@ -6,6 +6,7 @@ import type {
   GameState,
   Marker,
   Nation,
+  RangeShape,
 } from '../types';
 import { nationName } from './flags';
 
@@ -15,6 +16,7 @@ export const DEFAULT_CONFIG: GameConfig = {
   playerCount: 3,
   rangeOnStart: 3,
   maxRange: 5,
+  rangeShape: 'square',
   startingHp: 3,
   startingAp: 1,
   apGainPerTurn: 1,
@@ -42,6 +44,32 @@ export const LIMITS = {
   healAmount: [1, 99],
   apCost: [0, 99],
 } as const;
+
+export const RANGE_SHAPES: { value: RangeShape; label: string; hint: string }[] = [
+  {
+    value: 'square',
+    label: 'Square',
+    hint: 'Reach is the same in every direction (king moves).',
+  },
+  {
+    value: 'diamond',
+    label: 'Diamond',
+    hint: 'Diagonal steps count double, so the corners are cut away.',
+  },
+  {
+    value: 'star',
+    label: 'Star',
+    hint: 'The square, plus one extra square out along the 4 cardinal directions.',
+  },
+];
+
+export function isRangeShape(value: unknown): value is RangeShape {
+  return RANGE_SHAPES.some((shape) => shape.value === value);
+}
+
+export function shapeLabel(shape: RangeShape): string {
+  return RANGE_SHAPES.find((entry) => entry.value === shape)?.label ?? 'Square';
+}
 
 export type Outcome =
   | {
@@ -97,6 +125,7 @@ export function normalizeConfig(input?: Partial<GameConfig> | null): GameConfig 
     playerCount: clamp(int(raw.playerCount, DEFAULT_CONFIG.playerCount), LIMITS.playerCount[0], LIMITS.playerCount[1]),
     rangeOnStart: clamp(int(raw.rangeOnStart, DEFAULT_CONFIG.rangeOnStart), LIMITS.rangeOnStart[0], LIMITS.rangeOnStart[1]),
     maxRange: clamp(int(raw.maxRange, DEFAULT_CONFIG.maxRange), LIMITS.maxRange[0], LIMITS.maxRange[1]),
+    rangeShape: isRangeShape(raw.rangeShape) ? raw.rangeShape : DEFAULT_CONFIG.rangeShape,
     startingHp: clamp(int(raw.startingHp, DEFAULT_CONFIG.startingHp), LIMITS.startingHp[0], LIMITS.startingHp[1]),
     startingAp: clamp(int(raw.startingAp, DEFAULT_CONFIG.startingAp), LIMITS.startingAp[0], LIMITS.startingAp[1]),
     apGainPerTurn: clamp(int(raw.apGainPerTurn, DEFAULT_CONFIG.apGainPerTurn), LIMITS.apGainPerTurn[0], LIMITS.apGainPerTurn[1]),
@@ -118,6 +147,26 @@ export function normalizeConfig(input?: Partial<GameConfig> | null): GameConfig 
 
 export function chebyshev(a: Cell, b: Cell): number {
   return Math.max(Math.abs(a.col - b.col), Math.abs(a.row - b.row));
+}
+
+export function cellInRange(shape: RangeShape, from: Cell, to: Cell, range: number): boolean {
+  const dx = Math.abs(to.col - from.col);
+  const dy = Math.abs(to.row - from.row);
+  if (dx === 0 && dy === 0) return false;
+  if (range <= 0) return false;
+
+  switch (shape) {
+    case 'diamond':
+      return dx + dy <= range;
+    case 'star':
+      return (
+        Math.max(dx, dy) <= range ||
+        (dx === 0 && dy <= range + 1) ||
+        (dy === 0 && dx <= range + 1)
+      );
+    default:
+      return Math.max(dx, dy) <= range;
+  }
 }
 
 export function isAdjacent(a: Cell, b: Cell): boolean {
@@ -143,8 +192,7 @@ export function cellsWithin(config: GameConfig, origin: Cell, range: number): Ce
   for (let row = 0; row < config.rows; row++) {
     for (let col = 0; col < config.cols; col++) {
       const cell = { col, row };
-      if (cell.col === origin.col && cell.row === origin.row) continue;
-      if (chebyshev(cell, origin) <= range) out.push(cell);
+      if (cellInRange(config.rangeShape, origin, cell, range)) out.push(cell);
     }
   }
   return out;
@@ -152,7 +200,7 @@ export function cellsWithin(config: GameConfig, origin: Cell, range: number): Ce
 
 export function targetsInRange(state: GameState, actor: Nation): Nation[] {
   return state.nations.filter(
-    (n) => n.id !== actor.id && chebyshev(n, actor) <= actor.range,
+    (n) => n.id !== actor.id && cellInRange(state.config.rangeShape, actor, n, actor.range),
   );
 }
 
@@ -238,9 +286,11 @@ export function attackNation(state: GameState, actorId: string, targetId: string
   if (!target) return fail('There is no nation on that square.');
   if (target.id === actor.id) return fail('A nation cannot attack itself.');
 
-  const distance = chebyshev(actor, target);
-  if (distance > actor.range) {
-    return fail(`${target.name} is out of range (distance ${distance}, ${actor.name} has range ${actor.range}).`);
+  if (!cellInRange(state.config.rangeShape, actor, target, actor.range)) {
+    const shape = shapeLabel(state.config.rangeShape).toLowerCase();
+    return fail(
+      `${target.name} is out of range (${actor.name} has range ${actor.range} · ${shape} shape, distance ${chebyshev(actor, target)}).`,
+    );
   }
 
   const cost = state.config.apCosts.attack;
@@ -301,7 +351,9 @@ export function transferAp(state: GameState, actorId: string, targetId: string):
   if (target.id === actor.id) return fail('Pick a different nation to transfer AP to.');
 
   const cost = state.config.apCosts.transfer;
-  if (chebyshev(actor, target) > actor.range) return fail(`${target.name} is out of range.`);
+  if (!cellInRange(state.config.rangeShape, actor, target, actor.range)) {
+    return fail(`${target.name} is out of range.`);
+  }
   if (actor.ap < cost) return fail(`${actor.name} needs ${cost} AP to transfer (has ${actor.ap}).`);
 
   let next = replaceNation(state, actor.id, { ap: actor.ap - cost });

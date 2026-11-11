@@ -11,12 +11,15 @@ export interface ApCosts {
   increaseRange: number;
 }
 
+export type RangeShape = 'square' | 'diamond' | 'star';
+
 export interface GameConfig {
   cols: number;
   rows: number;
   playerCount: number;
   rangeOnStart: number;
   maxRange: number;
+  rangeShape: RangeShape;
   startingHp: number;
   startingAp: number;
   apGainPerTurn: number;
