@@ -5,6 +5,7 @@ import {
   attackNation,
   cellLabel,
   deleteNation,
+  freeMoveNation,
   grantTurnAp,
   healNation,
   moveNation,
@@ -28,6 +29,7 @@ import {
   IconHelp,
   IconHome,
   IconMinus,
+  IconMove,
   IconPlus,
   IconRange,
   IconRedo,
@@ -138,6 +140,10 @@ export function GameScreen({ initialHistory, initialUndone, onExit }: GameScreen
         setMode({ type: 'idle' });
         return;
       }
+      if (mode.type === 'free-move') {
+        if (run(freeMoveNation(live, actor.id, cell))) setMode({ type: 'idle' });
+        return;
+      }
       if (!nation) {
         pushToast(`No nation on ${cellLabel(cell, live.config.rows)}.`);
         return;
@@ -228,6 +234,13 @@ export function GameScreen({ initialHistory, initialUndone, onExit }: GameScreen
         onClick: () => run(adjustAp(live, id, -1)),
       },
       {
+        key: 'free-move',
+        label: 'Free move',
+        icon: <IconMove />,
+        disabled: live.nations.length >= live.config.cols * live.config.rows,
+        onClick: () => setMode({ type: 'free-move', actorId: id }),
+      },
+      {
         key: 'flag',
         label: 'Edit flag',
         icon: <IconFlag />,
@@ -263,6 +276,10 @@ export function GameScreen({ initialHistory, initialUndone, onExit }: GameScreen
       mode.type === 'attack' ? (
         <>
           Attacking with <b>{actor.name}</b> (range {actor.range}) — click a nation in range · Esc to cancel
+        </>
+      ) : mode.type === 'free-move' ? (
+        <>
+          Free moving <b>{actor.name}</b> — click any empty square · Esc to cancel
         </>
       ) : (
         <>

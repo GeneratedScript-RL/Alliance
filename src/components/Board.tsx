@@ -152,9 +152,10 @@ export function Board({
     if (nation) handlers.current.onSquareMenu(nation, event.clientX, event.clientY);
   };
 
+  const freeMove = mode.type === 'free-move';
   const rangeSource =
     mode.type !== 'idle' ? state.nations.find((n) => n.id === mode.actorId) ?? null : hoveredNation ?? null;
-  const rangeCells = rangeSource ? cellsWithin(state.config, rangeSource, rangeSource.range) : [];
+  const rangeCells = rangeSource && !freeMove ? cellsWithin(state.config, rangeSource, rangeSource.range) : [];
   const rangeSet = new Set(rangeCells.map((c) => `${c.col},${c.row}`));
 
   const dragSource = dragId ? state.nations.find((n) => n.id === dragId) ?? null : null;
@@ -179,7 +180,7 @@ export function Board({
       ? {
           from: { col: rangeSource.col, row: rangeSource.row },
           to: hoverCell,
-          tone: mode.type,
+          tone: mode.type === 'free-move' ? 'move' : mode.type,
           dashed: true,
         }
       : null;
@@ -211,6 +212,9 @@ export function Board({
           if (dragSet.has(key)) classes.push('hl-drop');
           if (dragTarget && dragTarget.col === col && dragTarget.row === row) {
             classes.push(dragValid ? 'hl-valid' : 'hl-invalid');
+          }
+          if (freeMove && hoverCell && hoverCell.col === col && hoverCell.row === row) {
+            classes.push(squareAt(state, col, row) ? 'hl-invalid' : 'hl-valid');
           }
           return (
             <div key={key} className={classes.join(' ')}>

@@ -215,6 +215,22 @@ export function moveNation(state: GameState, id: string, to: Cell): Outcome {
   );
 }
 
+export function freeMoveNation(state: GameState, id: string, to: Cell): Outcome {
+  const nation = state.nations.find((n) => n.id === id);
+  if (!nation) return fail('That nation no longer exists.');
+  if (nation.col === to.col && nation.row === to.row) return fail('That nation is already there.');
+  if (squareAt(state, to.col, to.row)) return fail('That square is occupied.');
+
+  const next = replaceNation(state, id, { col: to.col, row: to.row });
+  return done(
+    next,
+    'move',
+    `${nation.name} moved freely`,
+    `${cellLabel(nation, state.config.rows)} → ${cellLabel(to, state.config.rows)} · no AP cost`,
+    [{ from: { col: nation.col, row: nation.row }, to, tone: 'move' }],
+  );
+}
+
 export function attackNation(state: GameState, actorId: string, targetId: string): Outcome {
   const actor = state.nations.find((n) => n.id === actorId);
   if (!actor) return fail('That nation no longer exists.');

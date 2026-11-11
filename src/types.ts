@@ -96,4 +96,5 @@ export interface SaveFile {
 export type Mode =
   | { type: 'idle' }
   | { type: 'attack'; actorId: string }
-  | { type: 'transfer'; actorId: string };
+  | { type: 'transfer'; actorId: string }
+  | { type: 'free-move'; actorId: string };
