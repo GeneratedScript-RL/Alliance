@@ -41,6 +41,12 @@ export interface GameState {
   nations: Nation[];
 }
 
+export interface CustomFlag {
+  index: number;
+  name: string;
+  dataUrl: string;
+}
+
 export type ActionKind =
   | 'start'
   | 'move'
@@ -84,6 +90,7 @@ export interface SaveFile {
   config: GameConfig;
   history: HistoryEntry[];
   undone: HistoryEntry[];
+  customFlags?: CustomFlag[];
 }
 
 export type Mode =

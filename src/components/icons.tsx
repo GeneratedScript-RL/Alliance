@@ -120,6 +120,14 @@ export const IconTurn = (p: Props) => (
   </Svg>
 );
 
+export const IconUpload = (p: Props) => (
+  <Svg {...p}>
+    <path d="M12 17V4" />
+    <path d="m7.5 8.5 4.5-4.5 4.5 4.5" />
+    <path d="M4.5 15.5V19a1.5 1.5 0 0 0 1.5 1.5h12a1.5 1.5 0 0 0 1.5-1.5v-3.5" />
+  </Svg>
+);
+
 export const IconClose = (p: Props) => (
   <Svg {...p}>
     <path d="m6 6 12 12M18 6 6 18" />

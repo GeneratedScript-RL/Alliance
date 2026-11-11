@@ -1,4 +1,5 @@
 import { flagDataUrl, flagFallbackUrl, nationName } from '../game/flags';
+import { useCustomFlags } from '../game/customFlags';
 
 interface FlagProps {
   index: number;
@@ -8,6 +9,8 @@ interface FlagProps {
 }
 
 export function Flag({ index, alt, className, title }: FlagProps) {
+  useCustomFlags();
+
   return (
     <img
       className={className}

@@ -1,4 +1,5 @@
 import { FLAG_CODES } from './flagCodes';
+import { customFlagAt, customFlagPlaceholder, isCustomFlagIndex } from './customFlags';
 
 interface NationTheme {
   name: string;
@@ -1672,24 +1673,32 @@ export function flagCode(index: number): string {
 }
 
 export function nationName(index: number): string {
+  const custom = customFlagAt(index);
+  if (custom) return custom.name;
+  if (isCustomFlagIndex(index)) return 'Custom flag';
   const cycle = Math.floor(Math.round(index) / FLAG_COUNT);
   const base = NATIONS[wrap(index)].name;
   return cycle <= 0 ? base : `${base} ${ROMAN[cycle] ?? cycle + 1}`;
 }
 
 export function flagAccent(index: number): string {
+  if (isCustomFlagIndex(index)) return '#81b64c';
   return NATIONS[wrap(index)].accent;
 }
 
 const CDN = 'https://flagcdn.com/w160';
 
 export function flagDataUrl(index: number): string {
+  const custom = customFlagAt(index);
+  if (custom) return custom.dataUrl;
+  if (isCustomFlagIndex(index)) return customFlagPlaceholder();
   return `${CDN}/${flagCode(index)}.png`;
 }
 
 const cache = new Map<number, string>();
 
 export function flagFallbackUrl(index: number): string {
+  if (isCustomFlagIndex(index)) return customFlagPlaceholder();
   const key = wrap(index);
   const hit = cache.get(key);
   if (hit) return hit;

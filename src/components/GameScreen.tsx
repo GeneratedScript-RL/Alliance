@@ -392,6 +392,7 @@ export function GameScreen({ initialHistory, initialUndone, onExit }: GameScreen
           current={flagNation.flag}
           squareLabel={`${cellLabel(flagNation, live.config.rows)} (${flagNation.name})`}
           onPick={(flag) => run(setNationFlag(live, flagNation.id, flag))}
+          onRenamed={(flag) => run(setNationFlag(live, flagNation.id, flag))}
           onClose={() => setFlagTarget(null)}
         />
       )}

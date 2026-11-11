@@ -33,6 +33,10 @@ export function RulesModal({ onClose, costs, apGainPerTurn, maxRange, startingHp
             <strong>Right-click</strong> a nation for every action: attack, transfer, heal, range, AP and flag edits.
           </li>
           <li>
+            <strong>Edit flag</strong> opens the flag library — pick any country or upload your own image, which travels
+            inside the save file.
+          </li>
+          <li>
             <strong>Attack</strong> ({costs.attack} AP) picks a target inside the attacker&apos;s range; a red line follows
             your cursor until you click.
           </li>

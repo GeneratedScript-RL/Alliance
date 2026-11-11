@@ -1,6 +1,7 @@
 import type { ActionKind, Arrow, GameState, HistoryEntry, Marker, Nation, SaveFile } from '../types';
 import { clamp, normalizeConfig, uid } from './engine';
 import { nationName } from './flags';
+import { importCustomFlags, listCustomFlags } from './customFlags';
 
 const KINDS: ActionKind[] = ['start', 'move', 'attack', 'transfer', 'heal', 'range', 'ap', 'flag', 'delete', 'turn'];
 
@@ -98,6 +99,8 @@ export function parseSaveFile(text: string): { history: HistoryEntry[]; undone: 
     throw new Error('The save file contains no history.');
   }
 
+  importCustomFlags(raw.customFlags);
+
   const history = raw.history.map(sanitizeEntry);
   const last = history[history.length - 1];
   if (!last.state || last.state.nations.length === 0) {
@@ -120,6 +123,7 @@ export function buildSaveFile(
     config,
     history,
     undone,
+    customFlags: listCustomFlags(),
   };
 }
 

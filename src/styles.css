@@ -886,6 +886,115 @@ p {
   text-align: center;
 }
 
+.flag-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  padding-bottom: 12px;
+  margin-bottom: 14px;
+  background: var(--panel);
+  border-bottom: 1px solid var(--line);
+}
+.flag-toolbar .flag-search {
+  position: static;
+  flex: 1;
+  margin-bottom: 0;
+  box-shadow: none;
+}
+.flag-file {
+  display: none;
+}
+.flag-section {
+  margin-bottom: 18px;
+}
+.flag-section h3 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 10px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.flag-section h3 span {
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.07);
+  font-size: 10.5px;
+  letter-spacing: normal;
+}
+.flag-tile {
+  position: relative;
+}
+.flag-tile .flag-option {
+  width: 100%;
+}
+.flag-remove {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 7px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(20, 19, 15, 0.85);
+  color: #e0575a;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.12s ease;
+}
+.flag-tile:hover .flag-remove,
+.flag-remove:focus-visible {
+  opacity: 1;
+}
+.flag-remove:hover {
+  background: rgba(224, 87, 90, 0.18);
+  color: #ff7a6e;
+}
+.flag-rename {
+  width: 100%;
+  margin-top: 5px;
+  padding: 4px 6px;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 600;
+  text-align: center;
+}
+.flag-rename:hover {
+  border-color: var(--line);
+}
+.flag-rename:focus {
+  outline: none;
+  border-color: var(--accent);
+  background: #1d1c1a;
+  color: var(--text);
+}
+.flag-error {
+  margin: 0 0 12px;
+  padding: 8px 11px;
+  border-radius: 8px;
+  border: 1px solid rgba(224, 87, 90, 0.35);
+  background: rgba(224, 87, 90, 0.12);
+  color: #f0a6a0;
+  font-size: 12.5px;
+}
+.flag-hint {
+  margin: 14px 0 0;
+  color: var(--muted);
+  font-size: 11.5px;
+  text-align: center;
+}
+
 .rules-list {
   margin: 0;
   padding-left: 20px;
